@@ -7,6 +7,7 @@ import PancakePair from './abi/PancakePair.json';
 import BEP20 from './abi/BEP20.json';
 import { configuration } from 'src/config/config';
 import { PoolInfo } from './interface/pool';
+import { UserInfo } from './interface/user';
 
 @Injectable()
 export class PancakeswapService {
@@ -97,7 +98,7 @@ export class PancakeswapService {
         try {
           const pair = await this.getTokenPair(lpAddress);
 
-          const userInfo = await masterChefContract.methods
+          const userInfo: UserInfo = await masterChefContract.methods
             .userInfo(poolID, userAddress)
             .call();
 
@@ -144,7 +145,7 @@ export class PancakeswapService {
     try {
       const pair = await this.getTokenPair(lpAddress);
 
-      const userInfo = await masterChefContract.methods
+      const userInfo: UserInfo = await masterChefContract.methods
         .userInfo(poolID, userAddress)
         .call();
 
