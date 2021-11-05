@@ -6,9 +6,11 @@ export class PancakeswapController {
   constructor(private pancakeswapService: PancakeswapService) {}
 
   @Get('/pools')
-  getPools() {
+  async getPools() {
+    const pools = await this.pancakeswapService.getPools();
+
     return {
-      message: 'success',
+      pools,
     };
   }
 
