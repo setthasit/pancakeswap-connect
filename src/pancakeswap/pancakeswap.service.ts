@@ -6,6 +6,7 @@ import MasterChef from './abi/MasterChef.json';
 import PancakePair from './abi/PancakePair.json';
 import BEP20 from './abi/BEP20.json';
 import { configuration } from 'src/config/config';
+import { PoolInfo } from './interface/pool';
 
 @Injectable()
 export class PancakeswapService {
@@ -40,7 +41,7 @@ export class PancakeswapService {
 
     const pools = await Promise.all(
       poolIds.map(async (poolID) => {
-        const poolInfo = await masterChefContract.methods
+        const poolInfo: PoolInfo = await masterChefContract.methods
           .poolInfo(poolID)
           .call();
         const lpAddress = poolInfo.lpToken;
@@ -88,7 +89,7 @@ export class PancakeswapService {
 
     const stakes = await Promise.all(
       poolIds.map(async (poolID) => {
-        const poolInfo = await masterChefContract.methods
+        const poolInfo: PoolInfo = await masterChefContract.methods
           .poolInfo(poolID)
           .call();
         const lpAddress = poolInfo.lpToken;
@@ -135,7 +136,9 @@ export class PancakeswapService {
       configuration.pancakeswap.masterchefAddress,
     );
 
-    const poolInfo = await masterChefContract.methods.poolInfo(poolID).call();
+    const poolInfo: PoolInfo = await masterChefContract.methods
+      .poolInfo(poolID)
+      .call();
     const lpAddress = poolInfo.lpToken;
 
     try {
