@@ -40,3 +40,12 @@ $ docker build -t pcsw .
 # run with docker image
 $ docker run -p 8888:8888 pcsw
 ```
+
+## How to use the app
+Access you app by go to http://localhost:8888/
+
+
+### Endpoint
+`/pancakeswap/pools` - List of the available pools
+`/pancakeswap/:user_address` - List of staking of the user
+`/pancakeswap/:user_address/pool/:pool_id` - Get user staking by pool ID
