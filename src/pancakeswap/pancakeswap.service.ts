@@ -8,6 +8,7 @@ import BEP20 from './abi/BEP20.json';
 import { configuration } from 'src/config/config';
 import { PoolDTOReponse, PoolInfo } from './interface/pool';
 import { UserInfo } from './interface/user';
+import { StakeDTOReponse } from './interface/stake';
 
 @Injectable()
 export class PancakeswapService {
@@ -74,7 +75,7 @@ export class PancakeswapService {
     return pools;
   }
 
-  async getUserStake(userAddress: string) {
+  async getUserStake(userAddress: string): Promise<StakeDTOReponse[]> {
     // Get MasterChef Contract
     const masterChefContract = this.getContract(
       MasterChef.abi,
@@ -109,8 +110,8 @@ export class PancakeswapService {
             token0Symbol: pair.token0Symbol as string,
             token1: pair.token1Address as string,
             token1Symbol: pair.token1Symbol as string,
-            amount: userInfo.amount,
-            reward: userInfo.rewardDebt,
+            amount: userInfo.amount as number,
+            reward: userInfo.rewardDebt as number,
           };
         } catch {
           return {
@@ -130,7 +131,10 @@ export class PancakeswapService {
     return stakes;
   }
 
-  async getUserStakeByPool(poolID: number, userAddress: string) {
+  async getUserStakeByPool(
+    poolID: number,
+    userAddress: string,
+  ): Promise<StakeDTOReponse> {
     // Get MasterChef Contract
     const masterChefContract = this.getContract(
       MasterChef.abi,
@@ -157,7 +161,7 @@ export class PancakeswapService {
         token1: pair.token1Address as string,
         token1Symbol: pair.token1Symbol as string,
         amount: userInfo.amount,
-        reward: userInfo.rewardDebt,
+        reward: userInfo.rewardDebt as number,
       };
     } catch {
       return {
