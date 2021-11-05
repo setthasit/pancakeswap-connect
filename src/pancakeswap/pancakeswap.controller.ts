@@ -15,9 +15,11 @@ export class PancakeswapController {
   }
 
   @Get('/:user_address')
-  getLiquidityPool(@Param('user_address') userAddress: string) {
+  async getLiquidityPoolStake(@Param('user_address') userAddress: string) {
+    const users = await this.pancakeswapService.getUserStake(userAddress);
+
     return {
-      message: `success with address ${userAddress}`,
+      users,
     };
   }
 }

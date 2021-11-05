@@ -50,11 +50,11 @@ export class PancakeswapService {
 
           return {
             id: poolID,
-            lpAddress: lpAddress,
-            token0: pair.token0Address,
-            token0Symbol: pair.token0Symbol,
-            token1: pair.token1Address,
-            token1Symbol: pair.token1Symbol,
+            lpAddress: lpAddress as string,
+            token0: pair.token0Address as string,
+            token0Symbol: pair.token0Symbol as string,
+            token1: pair.token1Address as string,
+            token1Symbol: pair.token1Symbol as string,
           };
         } catch {
           return {
@@ -70,6 +70,62 @@ export class PancakeswapService {
     );
 
     return pools;
+  }
+
+  async getUserStake(userAddress: string) {
+    // Get MasterChef Contract
+    const masterChefContract = this.getContract(
+      MasterChef.abi,
+      configuration.pancakeswap.masterchefAddress,
+    );
+
+    const poolLength: number = await masterChefContract.methods
+      .poolLength()
+      .call();
+
+    // Create variable that contain all Pool IDs
+    const poolIds = [...Array(Number(poolLength)).keys()];
+
+    const stakes = await Promise.all(
+      poolIds.map(async (poolID) => {
+        const poolInfo = await masterChefContract.methods
+          .poolInfo(poolID)
+          .call();
+        const lpAddress = poolInfo.lpToken;
+
+        try {
+          const pair = await this.getTokenPair(lpAddress);
+
+          const userInfo = await masterChefContract.methods
+            .userInfo(lpAddress, userAddress)
+            .call();
+
+          return {
+            id: poolID,
+            lpAddress: lpAddress as string,
+            token0: pair.token0Address as string,
+            token0Symbol: pair.token0Symbol as string,
+            token1: pair.token1Address as string,
+            token1Symbol: pair.token1Symbol as string,
+            amount: userInfo.amount,
+            reward: userInfo.rewardDebt,
+          };
+        } catch {
+          return {
+            id: poolID,
+            lpAddress: lpAddress,
+            token0: null,
+            token0Symbol: null,
+            token1: null,
+            token1Symbol: null,
+            amount: null,
+            reward: null,
+          };
+        }
+      }),
+    );
+
+    return stakes;
   }
 
   // getTokenPair - Get infomation of the token pair in the pool
@@ -101,4 +157,27 @@ export class PancakeswapService {
     const tokenSymbol: string = await tokenContract.methods.symbol().call();
     return tokenSymbol;
   }
+
+  // private async getStakingBalance(poolInfo: PoolInfo, address: string) {
+  //   const user = await this.masterchef.methods
+  //     .userInfo(poolInfo.poolId, address)
+  //     .call();
+  //   const staking = {
+  //     tokenBalance: toDecimal(user.amount, poolInfo.tokenDecimals).toNumber(),
+  //   };
+  //   return staking;
+  // }
+
+  // private async getStakingReward(poolInfo: PoolInfo, address: string) {
+  //   const pendingReward = await this.masterchef.methods
+  //     .pendingCake(poolInfo.poolId, address)
+  //     .call();
+  //   const reward = {
+  //     rewardBalance: toDecimal(
+  //       pendingReward,
+  //       poolInfo.rewardDecimals
+  //     ).toNumber(),
+  //   };
+  //   return reward;
+  // }
 }
