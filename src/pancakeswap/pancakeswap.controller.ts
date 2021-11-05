@@ -1,7 +1,10 @@
 import { Controller, Get, Param } from '@nestjs/common';
+import { PancakeswapService } from './pancakeswap.service';
 
 @Controller('/pancakeswap')
 export class PancakeswapController {
+  constructor(private pancakeswapService: PancakeswapService) {}
+
   @Get('/pools')
   getPools() {
     return {
