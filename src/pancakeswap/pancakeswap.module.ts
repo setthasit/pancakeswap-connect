@@ -4,6 +4,6 @@ import { PancakeswapService } from './pancakeswap.service';
 
 @Module({
   controllers: [PancakeswapController],
-  providers: [PancakeswapService]
+  providers: [PancakeswapService],
 })
 export class PancakeswapModule {}
