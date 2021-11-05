@@ -6,7 +6,7 @@ import MasterChef from './abi/MasterChef.json';
 import PancakePair from './abi/PancakePair.json';
 import BEP20 from './abi/BEP20.json';
 import { configuration } from 'src/config/config';
-import { PoolInfo } from './interface/pool';
+import { PoolDTOReponse, PoolInfo } from './interface/pool';
 import { UserInfo } from './interface/user';
 
 @Injectable()
@@ -25,7 +25,7 @@ export class PancakeswapService {
     return new this.web3.eth.Contract(abi, address);
   }
 
-  async getPools() {
+  async getPools(): Promise<PoolDTOReponse[]> {
     // Get MasterChef Contract
     const masterChefContract = this.getContract(
       MasterChef.abi,
