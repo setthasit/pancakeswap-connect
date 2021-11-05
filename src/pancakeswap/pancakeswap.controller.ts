@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { PancakeswapService } from './pancakeswap.service';
 
 @Controller('/pancakeswap')
@@ -15,8 +15,23 @@ export class PancakeswapController {
   }
 
   @Get('/:user_address')
-  async getLiquidityPoolStake(@Param('user_address') userAddress: string) {
+  async getLiquidityPoolStakes(@Param('user_address') userAddress: string) {
     const users = await this.pancakeswapService.getUserStake(userAddress);
+
+    return {
+      users,
+    };
+  }
+
+  @Get('/:user_address/pool/:pool_id')
+  async getLiquidityPoolStake(
+    @Param('pool_id') poolID: number,
+    @Param('user_address') userAddress: string,
+  ) {
+    const users = await this.pancakeswapService.getUserStakeByPool(
+      poolID,
+      userAddress,
+    );
 
     return {
       users,
