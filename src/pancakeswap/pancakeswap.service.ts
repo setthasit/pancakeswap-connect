@@ -9,6 +9,7 @@ import { configuration } from 'src/config/config';
 import { PoolDTOReponse, PoolInfo } from './interface/pool';
 import { UserInfo } from './interface/user';
 import { StakeDTOReponse } from './interface/stake';
+import BigNumber from 'bignumber.js';
 
 @Injectable()
 export class PancakeswapService {
@@ -53,11 +54,11 @@ export class PancakeswapService {
 
           return {
             id: poolID,
-            lpAddress: lpAddress as string,
-            token0: pair.token0Address as string,
-            token0Symbol: pair.token0Symbol as string,
-            token1: pair.token1Address as string,
-            token1Symbol: pair.token1Symbol as string,
+            lpAddress: lpAddress,
+            token0: pair.token0Address,
+            token0Symbol: pair.token0Symbol,
+            token1: pair.token1Address,
+            token1Symbol: pair.token1Symbol,
           };
         } catch {
           return {
@@ -133,15 +134,23 @@ export class PancakeswapService {
         .userInfo(poolID, userAddress)
         .call();
 
+      // Get token and reward decimal
+      const cakeAddress = await masterChefContract.methods.cake().call();
+      const tokenDecimal = await this.getTokenDecimal(lpAddress);
+      const rewardDecimal = await this.getTokenDecimal(cakeAddress);
+
       return {
         id: poolID,
-        lpAddress: lpAddress as string,
-        token0: pair.token0Address as string,
-        token0Symbol: pair.token0Symbol as string,
-        token1: pair.token1Address as string,
-        token1Symbol: pair.token1Symbol as string,
-        amount: Number(userInfo.amount),
-        reward: Number(userInfo.rewardDebt),
+        lpAddress: lpAddress,
+        token0: pair.token0Address,
+        token0Symbol: pair.token0Symbol,
+        token1: pair.token1Address,
+        token1Symbol: pair.token1Symbol,
+        amount: this.convertBigNumberToDecimal(userInfo.amount, tokenDecimal),
+        reward: this.convertBigNumberToDecimal(
+          userInfo.rewardDebt,
+          rewardDecimal,
+        ),
       };
     } catch {
       return {
@@ -160,11 +169,11 @@ export class PancakeswapService {
   // getTokenPair - Get infomation of the token pair in the pool
   private async getTokenPair(address: string) {
     // Get PancakePair Contract
-    const tokenContract = this.getContract(PancakePair.abi, address);
+    const pancakeContract = this.getContract(PancakePair.abi, address);
 
     // Get token address
-    const token0Address = await tokenContract.methods.token0().call();
-    const token1Address = await tokenContract.methods.token1().call();
+    const token0Address = await pancakeContract.methods.token0().call();
+    const token1Address = await pancakeContract.methods.token1().call();
 
     // Get token symbol
     const token0Symbol = await this.getTokenSymbol(token0Address);
@@ -185,5 +194,18 @@ export class PancakeswapService {
 
     const tokenSymbol: string = await tokenContract.methods.symbol().call();
     return tokenSymbol;
+  }
+
+  // getTokenDecimal - Get token's symbol with address
+  private async getTokenDecimal(address: string): Promise<number> {
+    // Get BEP20 Contract
+    const tokenContract = this.getContract(BEP20.abi, address);
+
+    const tokenSymbol = await tokenContract.methods.decimals().call();
+    return Number(tokenSymbol);
+  }
+
+  private convertBigNumberToDecimal(number: any, decimal: number) {
+    return new BigNumber(number).dividedBy(`1e${decimal}`).toNumber();
   }
 }
