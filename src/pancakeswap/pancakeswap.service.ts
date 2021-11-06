@@ -91,51 +91,32 @@ export class PancakeswapService {
 
     const stakes = await Promise.all(
       poolIds.map(async (poolID) => {
-        const poolInfo: PoolInfo = await masterChefContract.methods
-          .poolInfo(poolID)
-          .call();
-        const lpAddress = poolInfo.lpToken;
-
-        try {
-          const pair = await this.getTokenPair(lpAddress);
-
-          const userInfo: UserInfo = await masterChefContract.methods
-            .userInfo(poolID, userAddress)
-            .call();
-
-          return {
-            id: poolID,
-            lpAddress: lpAddress as string,
-            token0: pair.token0Address as string,
-            token0Symbol: pair.token0Symbol as string,
-            token1: pair.token1Address as string,
-            token1Symbol: pair.token1Symbol as string,
-            amount: userInfo.amount as number,
-            reward: userInfo.rewardDebt as number,
-          };
-        } catch {
-          return {
-            id: poolID,
-            lpAddress: lpAddress,
-            token0: null,
-            token0Symbol: null,
-            token1: null,
-            token1Symbol: null,
-            amount: null,
-            reward: null,
-          };
+        // Get user stake
+        const stake = await this.getStake(poolID, userAddress);
+        if (Number(stake.amount) !== 0) {
+          return stake;
         }
       }),
     );
 
-    return stakes;
+    return stakes.filter((stake) => {
+      if (stake) {
+        return stake;
+      }
+    });
   }
 
   async getUserStakeByPool(
     poolID: number,
     userAddress: string,
   ): Promise<StakeDTOReponse> {
-    // Get MasterChef Contract
+    return this.getStake(poolID, userAddress);
+  }
+
+  private async getStake(
+    poolID: number,
+    userAddress: string,
+  ): Promise<StakeDTOReponse> {
     const masterChefContract = this.getContract(
       MasterChef.abi,
       configuration.pancakeswap.masterchefAddress,
@@ -145,7 +126,6 @@ export class PancakeswapService {
       .poolInfo(poolID)
       .call();
     const lpAddress = poolInfo.lpToken;
-
     try {
       const pair = await this.getTokenPair(lpAddress);
 
@@ -160,8 +140,8 @@ export class PancakeswapService {
         token0Symbol: pair.token0Symbol as string,
         token1: pair.token1Address as string,
         token1Symbol: pair.token1Symbol as string,
-        amount: userInfo.amount,
-        reward: userInfo.rewardDebt as number,
+        amount: Number(userInfo.amount),
+        reward: Number(userInfo.rewardDebt),
       };
     } catch {
       return {
