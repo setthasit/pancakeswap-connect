@@ -134,10 +134,10 @@ export class PancakeswapService {
         .userInfo(poolID, userAddress)
         .call();
 
-      // Get token and reward decimal
+      // Get token and reward decimals
       const cakeAddress = await masterChefContract.methods.cake().call();
-      const tokenDecimal = await this.getTokenDecimal(lpAddress);
-      const rewardDecimal = await this.getTokenDecimal(cakeAddress);
+      const tokenDecimals = await this.getTokenDecimals(lpAddress);
+      const rewardDecimals = await this.getTokenDecimals(cakeAddress);
 
       return {
         id: poolID,
@@ -146,10 +146,10 @@ export class PancakeswapService {
         token0Symbol: pair.token0Symbol,
         token1: pair.token1Address,
         token1Symbol: pair.token1Symbol,
-        amount: this.convertBigNumberToDecimal(userInfo.amount, tokenDecimal),
-        reward: this.convertBigNumberToDecimal(
+        amount: this.convertBigNumberToDecimals(userInfo.amount, tokenDecimals),
+        reward: this.convertBigNumberToDecimals(
           userInfo.rewardDebt,
-          rewardDecimal,
+          rewardDecimals,
         ),
       };
     } catch {
@@ -196,8 +196,8 @@ export class PancakeswapService {
     return tokenSymbol;
   }
 
-  // getTokenDecimal - Get token's symbol with address
-  private async getTokenDecimal(address: string): Promise<number> {
+  // getTokenDecimals - Get token's symbol with address
+  private async getTokenDecimals(address: string): Promise<number> {
     // Get BEP20 Contract
     const tokenContract = this.getContract(BEP20.abi, address);
 
@@ -205,7 +205,8 @@ export class PancakeswapService {
     return Number(tokenSymbol);
   }
 
-  private convertBigNumberToDecimal(number: any, decimal: number) {
+  // convertBigNumberToDecimals - Convert Bignumber into decimals
+  private convertBigNumberToDecimals(number: any, decimal: number) {
     return new BigNumber(number).dividedBy(`1e${decimal}`).toNumber();
   }
 }
